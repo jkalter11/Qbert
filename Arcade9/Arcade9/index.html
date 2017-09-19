@@ -20,6 +20,12 @@
             var platforms;
             var cursors;
             var jumpButton;
+            var playerOriginalX;
+            var playerOriginalY;
+            var cube;
+            var letdown = false;
+            var downcount;
+            var timer;
 
 
             function preload() {
@@ -65,43 +71,63 @@
 
             }
 
-            function update() {
+            function update()
+            {
 
-                game.physics.arcade.collide(player, platforms);
+                game.physics.arcade.collide(player, platforms, cubeColor);
 
-
-                if (cursors.left.isDown) {
-                    //  Move to the left
-                    player.body.velocity.x = -150;
-
-                    player.animations.play('left');
+                if (letdown == true && downcount == 50) {
+                    //if(downcount >= 5)
+                    {
+                        player.body.checkCollision.down = true;
+                        letdown = false;
+                        downcount = 0;
+                    }
+                    //else
+                    //    downcount += 1;
                 }
+                downcount++;
 
-                else if (cursors.right.isDown) {
-                    //  Move to the right
-                    player.body.velocity.x = 150;
-
-                    player.animations.play('right');
-                }
-
-                else {
-                    //  Stand still
-                    //player.animations.stop();
+                if (player.body.touching.down) {
                     player.body.velocity.x = 0;
-
                 }
-
-                //player jumps and checks if player is on the floor or ground.
-                if (jumpButton.isDown && (player.body.touching.down)) {
+                if (cursors.up.isDown && (player.body.touching.down)) {
                     player.body.velocity.y = -200;
+                    player.body.velocity.x = 15;
+                }
+                if (cursors.down.isDown && (player.body.touching.down)) {
+                    player.body.velocity.y = -200;
+                    player.body.velocity.x = -15;
+                    player.body.checkCollision.down = false;
+                    letdown = true;
+                    downcount = 0;
+                    //timer.loop(1000, updateCounter, this);
+                }
+                if (cursors.left.isDown && (player.body.touching.down)) {
+                    player.body.velocity.y = -200;
+                    player.body.velocity.x = -15;
+                }
+                if (cursors.right.isDown && (player.body.touching.down)) {
+                    player.body.checkCollision.down = false;
+                    letdown = true;
+                    player.body.velocity.y = -200;
+                    player.body.velocity.x = 15;
+                    downcount = 0;
+                    //timer.loop(1000, updateCounter, this);
+
                 }
 
-                if (player.body.onFloor()) {
+                if (player.body.onFloor())
+                {
                     player.x = 405;
                     player.y = 110;
                 }
 
+            }
 
+
+            function cubeColor(player, star) {
+               // cube.kill();
 
             }
 
@@ -109,45 +135,46 @@
             // this code needs to be revised, but it's fine for the presentation. I'll improve it once other features are in.
             function pyramid()
             {
+
                 for (var i = 0; i < 7; i++) {
                     //  Create a star inside of the 'stars' group
-                    var star = platforms.create((i * 15) + 400, (i * 25) + 200, 'platform');
+                    var cube = platforms.create((i * 15) + 400, (i * 25) + 200, 'platform');
 
                 }
 
                 for (var i = 0; i < 6; i++) {
                     //  Create a star inside of the 'stars' group
-                    var star = platforms.create((i * 15) + 385, (i * 25) + 225, 'platform');
+                    var cube = platforms.create((i * 15) + 385, (i * 25) + 225, 'platform');
 
                 }
 
                 for (var i = 0; i < 5; i++) {
                     //  Create a star inside of the 'stars' group
-                    var star = platforms.create((i * 15) + 370, (i * 25) + 250, 'platform');
+                    var cube = platforms.create((i * 15) + 370, (i * 25) + 250, 'platform');
 
                 }
 
                 for (var i = 0; i < 4; i++) {
                     //  Create a star inside of the 'stars' group
-                    var star = platforms.create((i * 15) + 355, (i * 25) + 275, 'platform');
+                    var cube = platforms.create((i * 15) + 355, (i * 25) + 275, 'platform');
 
                 }
 
                 for (var i = 0; i < 3; i++) {
                     //  Create a star inside of the 'stars' group
-                    var star = platforms.create((i * 15) + 340, (i * 25) + 300, 'platform');
+                    var cube = platforms.create((i * 15) + 340, (i * 25) + 300, 'platform');
 
                 }
 
                 for (var i = 0; i < 2; i++) {
                     //  Create a star inside of the 'stars' group
-                    var star = platforms.create((i * 15) + 325, (i * 25) + 325, 'platform');
+                    var cube = platforms.create((i * 15) + 325, (i * 25) + 325, 'platform');
 
                 }
 
                 for (var i = 0; i < 1; i++) {
                     //  Create a star inside of the 'stars' group
-                    var star = platforms.create((i * 15) + 310, (i * 25) + 350, 'platform');
+                    var cube = platforms.create((i * 15) + 310, (i * 25) + 350, 'platform');
 
                 }
 
