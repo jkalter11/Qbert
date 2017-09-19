@@ -41,6 +41,8 @@
                 platforms.setAll('body.immovable', true);
 
 
+
+
                 //add player sprite, animation, and physics
                 player = game.add.sprite(400, 110, 'player');
                 player.animations.add('left', [2, 3], 2, false);
@@ -52,6 +54,11 @@
                 //set player gravity and stops him from leaving the screen's boundry
                 player.body.collideWorldBounds = true;
                 player.body.gravity.y = 500;
+
+                player.body.checkCollision.up = false;
+                player.body.checkCollision.left = false;
+                player.body.checkCollision.right = false;
+
 
                 cursors = game.input.keyboard.createCursorKeys();
                 jumpButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -94,11 +101,14 @@
                     player.y = 110;
                 }
 
+
+
             }
 
             //  Here we'll create 7 columns of cubes evenly spaced apart
             // this code needs to be revised, but it's fine for the presentation. I'll improve it once other features are in.
-            function pyramid() {
+            function pyramid()
+            {
                 for (var i = 0; i < 7; i++) {
                     //  Create a star inside of the 'stars' group
                     var star = platforms.create((i * 15) + 400, (i * 25) + 200, 'platform');
