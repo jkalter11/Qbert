@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-    <title>hello phaser!</title>
+    <title>Q*bert!</title>
     <script src="//cdn.jsdelivr.net/phaser/2.6.2/phaser.min.js"></script>
 </head>
 <body>
@@ -23,7 +23,7 @@
 
             function preload() {
 
-                game.stage.backgroundColor = '#85b5e1';
+                game.stage.backgroundColor = '#000000';
                 game.load.spritesheet('platform', 'Blocks.png', 32, 32, 4);
                 game.load.spritesheet('player', 'QBert.png', 16, 16, 8);
 
@@ -34,7 +34,6 @@
                 game.physics.startSystem(Phaser.Physics.ARCADE);
 
                 player = game.add.sprite(495, 510, 'player');
-                platform = game.add.sprite(64, 64, 'platform');
 
                 player.animations.add('left', [2, 3], 2, false);
                 player.animations.add('right', [4, 5], 2, false);
@@ -48,9 +47,12 @@
 
                 platforms = game.add.physicsGroup();
 
-                platforms.create(495, 560, 'platform');
-                platforms.create(510, 535, 'platform');
-                platforms.create(480, 535, 'platform');
+                //  Here we'll create 12 of them evenly spaced apart
+                for (var i = 0; i < 7; i++) {
+                    //  Create a star inside of the 'stars' group
+                    var star = platforms.create((i * 15) + 400, (i * 25) + 200, 'platform');
+
+                }
 
                 platforms.setAll('body.immovable', true);
 
