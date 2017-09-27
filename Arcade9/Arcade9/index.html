@@ -2,11 +2,10 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-    <title>Qbert</title>
+    <title>Q*bert!</title>
     <script src="//cdn.jsdelivr.net/phaser/2.6.2/phaser.min.js"></script>
 </head>
 <body>
-
     <script type="text/javascript">
 
         window.onload = function () {
@@ -15,88 +14,448 @@
             //  Although it will work fine with this tutorial, it's almost certainly not the most current version.
             //  Be sure to replace it with an updated version before you start experimenting with adding your own code.
 
-            var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+            var game = new Phaser.Game(2000, 1600, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
             var player;
+            var snake;
             var platforms;
+            var uiPlayer;
+
             var cursors;
             var jumpButton;
+            var leftButton;
+            var rightButton;
+            var upButton;
+            var downButton;
+            var screenSizeX = 20;
+            var screenSizeY = 600;
+
+            var cube;
+            var patternCheck;
+            var encircleCounter = false;
+            var belowScreen;
+            var letdown = false;
+            var downcount;
+            var spawnTimer = 0;
+            var enemyMoveTimer = 0;
+            var enemyDirection;
+            var lives = 3;
+            var score = 0;
+            var scoreText;
+            var snakeActive = false;
+
+            var gameTimer = 0;
+            var textStyle;
+            var seconds = 45;
+            var time = 0;
+            var pointsToWin = 180;
+
+            //Audio variables
+            var bgm;
+            var nBlocks;
+            var hopsoundflag = false;
+
 
             function preload() {
 
-                game.stage.backgroundColor = '#85b5e1';
-                game.load.spritesheet('platform', 'Blocks.png', 32, 32, 4);
+                //add in  spritesheets
+                game.stage.backgroundColor = '#000000';
+                game.load.spritesheet('platform', 'Blocks.png', 64, 64, 4);
+                game.load.spritesheet('hell', 'Blocks.png', 64, 64, 4);
                 game.load.spritesheet('player', 'QBert.png', 16, 16, 8);
+                game.load.spritesheet('snake', 'Snake.png', 16, 32, 8);
+                game.load.spritesheet('victory', 'Play.png', 51, 7.83, 6);
+
+                //Audio files
+                game.load.audio('bgm', 'background.wav');
+                game.load.audio('nBlocks', 'normalBlocks.wav');
+
 
             }
 
-
             function create() {
                 game.physics.startSystem(Phaser.Physics.ARCADE);
+                scoreText = game.add.text(110, 8, ' ', { fontSize: '25px', fill: '#F09' });
+                //gameTimer = game.add.text(400, 20, '00:00', { fontSize: '32px', fill: '#FF8' });
 
-                player = game.add.sprite(495, 510, 'player');
-                platform = game.add.sprite(64, 64, 'platform');
 
+                //sets pyramid and the cubes collision
+                platforms = game.add.physicsGroup();
+                pyramid();
+                platforms.setAll('body.immovable', true);
+                cube.animations.add('blue', [0, 1, 2, 3], 2, true);
+
+                //checks if enemy goes below the screen
+                belowScreen = game.add.sprite(0, 650, 'hell');
+                belowScreen.width = 800;
+                belowScreen.alpha = 0;
+                game.physics.arcade.enable(belowScreen);
+                belowScreen.body.immovable = true;
+
+
+                //UI for game
+                life1 = game.add.sprite(15, 80, 'player');
+                life2 = game.add.sprite(15, 100, 'player');
+                life3 = game.add.sprite(15, 120, 'player');
+                goal = game.add.sprite(10, 40, 'platform');
+                goal.frame = 2;
+
+                uiPlayer = game.add.sprite(0, 15, 'victory');
+                uiPlayer.width = 102;
+                uiPlayer.height = 16;
+                uiPlayer.animations.add('loop', [0, 1, 2, 3, 4, 5], 10, true);
+
+
+                //add player sprite, animation, and physics
+                player = game.add.sprite(898, 100, 'player');
+                player.width = 32;
+                player.height = 32;
                 player.animations.add('left', [2, 3], 2, false);
                 player.animations.add('right', [4, 5], 2, false);
                 player.animations.add('up', [0, 1], 2, false);
                 player.animations.add('down', [6, 7], 2, false);
-
                 game.physics.arcade.enable(player);
 
+                //set player gravity and stops him from leaving the screen's boundry
                 player.body.collideWorldBounds = true;
                 player.body.gravity.y = 500;
 
-                platforms = game.add.physicsGroup();
+                // turn off player's left, right, and above collision checks
+                player.body.checkCollision.up = false;
+                player.body.checkCollision.left = false;
+                player.body.checkCollision.right = false;
 
-                platforms.create(495, 560, 'platform');
-                platforms.create(510, 535, 'platform');
-                platforms.create(480, 535, 'platform');
 
-                platforms.setAll('body.immovable', true);
 
                 cursors = game.input.keyboard.createCursorKeys();
-                jumpButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
+                //key controller
+                leftButton = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_7);
+                rightButton = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_3);
+                upButton = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_9);
+                downButton = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_1);
+
+                //Audio
+                nBlocks = game.add.audio('nBlocks');
+                bgm = game.add.audio('bgm');
+
+                bgm.play();
             }
 
             function update() {
 
-                game.physics.arcade.collide(player, platforms);
+                game.physics.arcade.collide(player, platforms, cubeColor, null, this);
+                game.physics.arcade.collide(snake, platforms, enemyCubeColor, null, this);
+                game.physics.arcade.collide(snake, belowScreen, hitFloor, null, this);
+                game.physics.arcade.collide(snake, player, hitEnemy, null, this);
 
 
-                if (cursors.left.isDown) {
-                    //  Move to the left
-                    player.body.velocity.x = -150;
+                uiPlayer.animations.play('loop');
 
+                //AI();
+
+                if (letdown == true && downcount == 30) {
+                    //if(downcount >= 5)
+                    {
+                        player.body.checkCollision.down = true;
+                        letdown = false;
+                        downcount = 0;
+                    }
+                    //else
+                    //    downcount += 1;
+                }
+                downcount++;
+
+                if (player.body.touching.down) {
+                    player.body.velocity.x = 0;
+                    if(hopsoundflag == true)
+                    {
+                        nBlocks.play();
+                        hopsoundflag = false;
+                    }
+                }
+
+                if (upButton.isDown && (player.body.touching.down)) {
+                    player.body.velocity.y = -228;
+                    player.body.velocity.x = 60;
+                    player.animations.play('up');
+                    hopsoundflag = true;
+                }
+
+                if (downButton.isDown && (player.body.touching.down)) {
+                    player.body.velocity.y = -68;
+                    player.body.velocity.x = -54;
+                    player.body.checkCollision.down = false;
+                    letdown = true;
+                    downcount = 0;
+                    player.animations.play('down');
+                    hopsoundflag = true;
+                    //timer.loop(1000, updateCounter, this);
+                }
+
+                if (leftButton.isDown && (player.body.touching.down)) {
+                    player.body.velocity.y = -228;
+                    player.body.velocity.x = -58;
                     player.animations.play('left');
+                    hopsoundflag = true;
                 }
 
-                else if (cursors.right.isDown) {
-                    //  Move to the right
-                    player.body.velocity.x = 150;
-
+                if (rightButton.isDown && (player.body.touching.down)) {
+                    player.body.checkCollision.down = false;
+                    letdown = true;
+                    player.body.velocity.y = -68;
+                    player.body.velocity.x = 54;
+                    downcount = 0;
                     player.animations.play('right');
+                    hopsoundflag = true;
+                    //timer.loop(1000, updateCounter, this);
                 }
 
-                else {
-                    //  Stand still
-                    //player.animations.stop();
+                if (player.body.onFloor()) {
+                    player.x = 416;
+                    player.y = 150;
                     player.body.velocity.x = 0;
 
+                    lives--;
+                    if (lives === 2) {
+                        life3.kill();
+                    }
+
+                    if (lives === 1) {
+                        life2.kill();
+                    }
+
+                    if (lives === 0) {
+                        life1.kill();
+                        player.kill();
+                    }
+
+                }
+
+                //updateTimer();
+
+                if (score >= pointsToWin) {
+                    scoreText.text = ': Winner';
+                    //game.paused = true;
+                }
+
+                else if (seconds <= 0 || lives === 0) {
+                    scoreText.text = ': Git Gud';
+                    //game.paused = true;
+                }
+
+                else if (score <= pointsToWin || seconds >= 0) {
+                    scoreText.text = ': ' + encircleCounter + '/ 180';
+
+                }
+
+            }
+
+            function updateTimer() {
+                time++;
+                if (time > 60) {
+                    seconds--;
+                    time = 0;
+                }
+
+                if (seconds <= 0) {
+                    player.kill();
+                    snake.kill();
                 }
 
 
+                gameTimer.setText(seconds);
+            }
 
-                if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
-                    player.body.velocity.y = -400;
+            function AI() {
+                if (spawnTimer > 300 && snakeActive == false) {
+                    //add snake sprite, animation, and physics
+                    snakeActive = true;
+                    snake = game.add.sprite(416, 100, 'snake');
+                    snake.animations.add('left', [3, 2], 2, false);
+                    snake.animations.add('right', [5, 4], 2, false);
+                    snake.animations.add('up', [1, 0], 2, false);
+                    snake.animations.add('down', [7, 6], 2, false);
+                    game.physics.arcade.enable(snake);
+
+                    snake.body.checkCollision.up = false;
+                    snake.body.checkCollision.left = false;
+                    snake.body.checkCollision.right = false;
+
+
+                    //snake.body.collideWorldBounds = true;
+                    snake.body.gravity.y = 500;
+
+                    enemyMoveTimer = 0;
+                }
+                spawnTimer++;
+
+                //enemy movement
+                if (enemyMoveTimer > 150 && snakeActive == true) {
+                    enemyDirection = game.rnd.integer() % 4;
+
+
+                    if (enemyDirection === 0) {
+                        snake.body.gravity.y = 500;
+
+                        snake.body.velocity.y = -225;
+                        snake.body.velocity.x = 70;
+                        snake.animations.play('up');
+                        enemyMoveTimer = 0;
+
+                    }
+
+                    if (enemyDirection === 1) {
+                        snake.body.gravity.y = 500;
+
+                        snake.body.velocity.y = -90;
+                        snake.body.velocity.x = -45;
+                        snake.animations.play('down');
+                        enemyMoveTimer = 0;
+
+                    }
+
+                    if (enemyDirection === 2) {
+                        snake.body.gravity.y = 500;
+
+                        snake.body.velocity.y = -200;
+                        snake.body.velocity.x = -80;
+                        snake.animations.play('left');
+                        enemyMoveTimer = 0;
+
+                    }
+
+                    if (enemyDirection === 3) {
+                        snake.body.gravity.y = 500;
+
+
+                        snake.body.velocity.y = -100;
+                        snake.body.velocity.x = 88;
+                        snake.animations.play('right');
+                        enemyMoveTimer = 0;
+
+                    }
+                }
+                enemyMoveTimer++;
+
+            }
+
+            // change cube color on collison with player and adds to the score
+            function cubeColor(player, cube) {
+                if (cube.frame === 0) {
+                    score += 10;
+                }
+
+                cube.frame = 2;
+
+                player.x = cube.x+32 - player.width/2;
+                player.y = cube.y - 16;
+
+            }
+
+            function enemyCubeColor(enemy, cube) {
+                if (cube.frame === 2) {
+                    score -= 10;
+                }
+
+                cube.frame = 0;
+
+                enemy.x = cube.x + 10;
+                enemy.y = cube.y - 22;
+                enemy.body.gravity.y = 0;
+                enemy.body.velocity.x = 0;
+
+            }
+
+            function hitFloor(enemy, below) {
+                snake.kill();
+                snakeActive = false;
+                spawnTimer = 0;
+
+            }
+
+            function hitEnemy(enemy, player) {
+                player.x = 416;
+                player.y = 150;
+                player.body.velocity.x = 0;
+
+                lives--;
+                if (lives === 2) {
+                    life3.kill();
+                }
+
+                if (lives === 1) {
+                    life2.kill();
+                }
+
+                if (lives === 0) {
+                    life1.kill();
+                    player.kill();
                 }
             }
 
+            //  Here we'll create n columns of cubes evenly spaced apart
+            // this code needs to be revised, but it's fine for the presentation. I'll improve it once other features are in.
+            function pyramid() {
+                var x = 32;
+                var y = 48;
 
+                for (var i = 0; i < 7; i++) {
+                    //  Create a star inside of the 'stars' group
+                    cube = platforms.create((i * x) + 882, (i * y) + 200, 'platform');
+                    cube.body.setSize(32, 1, 16, 16);
+                    cube.width = 64;
+                    cube.height = 64;
 
+                }
+
+                for (var i = 0; i < 7; i++) {
+                    //  Create a star inside of the 'stars' group
+                    cube = platforms.create((i * x) + 850, (i * y) + 248, 'platform');
+                    cube.body.setSize(32, 1, 16, 16);
+
+                }
+
+                for (var i = 0; i < 7; i++) {
+                    //  Create a star inside of the 'stars' group
+                    cube = platforms.create((i * x) + 818, (i * y) + 296, 'platform');
+                    cube.body.setSize(32, 1, 16, 16);
+
+                }
+
+                for (var i = 0; i < 7; i++) {
+                    //  Create a star inside of the 'stars' group
+                    cube = platforms.create((i * x) + 786, (i * y) + 344, 'platform');
+                    cube.body.setSize(32, 1, 16, 16);
+    
+                }
+
+                for (var i = 0; i < 7; i++) {
+                    //  Create a star inside of the 'stars' group
+                    cube = platforms.create((i * x) + 754, (i * y) + 392, 'platform');
+                    cube.body.setSize(32, 1, 16, 16);
+             
+                }
+
+                for (var i = 0; i < 7; i++) {
+                    //  Create a star inside of the 'stars' group
+                    cube = platforms.create((i * x) + 722, (i * y) + 440, 'platform');
+                    cube.body.setSize(32, 1, 16, 16);
+             
+                }
+
+                for (var i = 0; i < 7; i++) {
+                    //  Create a star inside of the 'stars' group
+                    cube = platforms.create((i * x) + 690, (i * y) + 488, 'platform');
+                    cube.body.setSize(32, 1, 16, 16);
+          
+                }
+            }
+
+            function render() {
+                //game.debug.body(patternCheck);
+            }
         };
 
     </script>
-
 </body>
 </html>
