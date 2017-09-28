@@ -30,6 +30,8 @@
             var screenSizeY = 600;
 
             var cube;
+            var cubearr = new Array();                          //The array where cubes are recorded
+            var j = 0;                                          //index to keep track of cubes
             var patternCheck;
             var encircleCounter = false;
             var belowScreen;
@@ -136,7 +138,9 @@
 
                 //Audio
                 nBlocks = game.add.audio('nBlocks');
+                
                 bgm = game.add.audio('bgm');
+                bgm.loop = true;
 
                 bgm.play();
             }
@@ -147,6 +151,14 @@
                 game.physics.arcade.collide(snake, platforms, enemyCubeColor, null, this);
                 game.physics.arcade.collide(snake, belowScreen, hitFloor, null, this);
                 game.physics.arcade.collide(snake, player, hitEnemy, null, this);
+
+                for(var j = 8; j < 41; j++)
+                {
+                    if(j % 7 >= 1 && j % 7 <= 5)
+                        if(cubearr[j].frame != 2) {
+                            colorCircle(j);
+                        }
+                }
 
 
                 uiPlayer.animations.play('loop');
@@ -405,6 +417,10 @@
                     cube.body.setSize(32, 1, 16, 16);
                     cube.width = 64;
                     cube.height = 64;
+                    cube.name = j;
+                    cubearr.push(cube);
+                    console.log(cubearr[j].name);
+                    j++;
 
                 }
 
@@ -412,6 +428,10 @@
                     //  Create a star inside of the 'stars' group
                     cube = platforms.create((i * x) + 850, (i * y) + 248, 'platform');
                     cube.body.setSize(32, 1, 16, 16);
+                    cube.name = j;
+                    cubearr.push(cube);
+                    console.log(cubearr[j].name);
+                    j++;
 
                 }
 
@@ -419,6 +439,10 @@
                     //  Create a star inside of the 'stars' group
                     cube = platforms.create((i * x) + 818, (i * y) + 296, 'platform');
                     cube.body.setSize(32, 1, 16, 16);
+                    cube.name = j;
+                    cubearr.push(cube);
+                    console.log(cubearr[j].name);
+                    j++;
 
                 }
 
@@ -426,6 +450,10 @@
                     //  Create a star inside of the 'stars' group
                     cube = platforms.create((i * x) + 786, (i * y) + 344, 'platform');
                     cube.body.setSize(32, 1, 16, 16);
+                    cube.name = j;
+                    cubearr.push(cube);
+                    console.log(cubearr[j].name);
+                    j++;
     
                 }
 
@@ -433,6 +461,10 @@
                     //  Create a star inside of the 'stars' group
                     cube = platforms.create((i * x) + 754, (i * y) + 392, 'platform');
                     cube.body.setSize(32, 1, 16, 16);
+                    cube.name = j;
+                    cubearr.push(cube);
+                    console.log(cubearr[j].name);
+                    j++;
              
                 }
 
@@ -440,6 +472,10 @@
                     //  Create a star inside of the 'stars' group
                     cube = platforms.create((i * x) + 722, (i * y) + 440, 'platform');
                     cube.body.setSize(32, 1, 16, 16);
+                    cube.name = j;
+                    cubearr.push(cube);
+                    console.log(cubearr[j].name);
+                    j++;
              
                 }
 
@@ -447,12 +483,25 @@
                     //  Create a star inside of the 'stars' group
                     cube = platforms.create((i * x) + 690, (i * y) + 488, 'platform');
                     cube.body.setSize(32, 1, 16, 16);
+                    cube.name = j;
+                    cubearr.push(cube);
+                    console.log(cubearr[j].name);
+                    j++;
           
                 }
             }
 
             function render() {
                 //game.debug.body(patternCheck);
+            }
+
+            function colorCircle(cubej) {
+                if(cubearr[cubej-1].frame ==2 && cubearr[cubej+1].frame ==2
+                 && cubearr[cubej-7].frame ==2 && cubearr[cubej+7].frame ==2
+                  && cubearr[cubej-6].frame ==2 && cubearr[cubej+6].frame ==2) {
+                    cubearr[cubej].frame = 2;
+                    console.log('Is color changing?');
+                }
             }
         };
 
